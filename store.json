@@ -1,0 +1,32 @@
+[
+    {
+        "title": "Peperoni",
+        "price": 300,
+        "image": "pizza1.jpg"
+    },
+    {
+        "title": "Pizza with mushrooms",
+        "price": 499,
+        "image": "pizza2.jpg"
+    },
+    {
+        "title": "4 meats",
+        "price": 260,
+        "image": "pizza3.jpg"
+    },
+    {
+        "title": "Pizza with mushroom",
+        "price": 499,
+        "image": "pizza4.jpg"
+    },
+    {
+        "title": "IDK",
+        "price": 300,
+        "image": "pizza5.jpg"
+    },
+    {
+        "title": "GeyFruit",
+        "price": 990,
+        "image": "pizza6.png"
+    }
+]
