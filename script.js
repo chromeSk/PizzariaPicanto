@@ -1,9 +1,6 @@
-async function getProducts() {
-    let response = await fetch("store.json");
-    let products = await response.json();
-    return products;
-};
+/* Файл із спільними скриптами для всього сайту (анімації, меню, кошик) */
 
+// Функція для отримання значення кукі за ім'ям
 function getCookieValue(cookieName) {
     // Розділяємо всі куки на окремі частини
     const cookies = document.cookie.split(';');
@@ -23,56 +20,69 @@ function getCookieValue(cookieName) {
 }
 
 
-function getCardHTML(product) {
+// Отримуємо дані про товари з JSON файлу
+async function getProducts() {
+    let response = await fetch("store.json");
+    let products = await response.json();
+    return products;
+};
 
-let productData = JSON.stringify(product);
-console.log(product);
+// Генеруємо HTML-код для карточки товару
+function getCardHTML(product) {
+    // Створюємо JSON-строку з даними про товар і зберігаємо її в data-атрибуті
+    let productData = JSON.stringify(product)
 
     return `
-        <div class="card">
-            <img src="img/${product.image}" alt="${product.name}">
-            <h3>${product.title}</h3>
-            <p>Price: ${product.price}₴</p>
-            <button class="add-to-cart" data-product='${productData}'>Add to Cart</button>
+       <div class="card">
+                <img src="img/${product.image}" alt="${product.title}">
+             <h3>${product.title}</h3>
+             <p>Price: ${product.price}₴</p>
+             <button class="add-to-cart" data-product='${productData}'>Add to Cart</button>
         </div>
     `;
 }
-    getProducts().then(function(products) {
-        let productsList = document.querySelector(".pizza-container");
-        if (productsList) {
-            products.forEach(function(product) {
-                productsList.innerHTML += getCardHTML(product);
-            });
-        }
-    let buyButtons = document.querySelectorAll(".add-to-cart");
 
+// Відображаємо товари на сторінці
+getProducts().then(function (products) {
+    let productsList = document.querySelector('.pizza-container')
+    if (productsList) {
+        products.forEach(function (product) {
+            productsList.innerHTML += getCardHTML(product)
+        })
+    }
+
+    // Отримуємо всі кнопки "Купити" на сторінці
+    let buyButtons = document.querySelectorAll('.add-to-cart');
+    // Навішуємо обробник подій на кожну кнопку "Купити"
     if (buyButtons) {
         buyButtons.forEach(function (button) {
-            button.addEventListener("click", addToCart);
+            button.addEventListener('click', addToCart);
         });
     }
 })
 
+
 // Отримуємо кнопку "Кошик"
-const cartBtn = document.getElementById('cart');
+const cartBtn = document.querySelector('.cart');
 
 // Навішуємо обробник подій на клік кнопки "Кошик"
 cartBtn.addEventListener("click", function () {
     // Переходимо на сторінку кошика
-    window.location.assign("cart.html");
+    window.location.assign('cart.html');
 });
 
 // Створення класу кошика
 class ShoppingCart {
     constructor() {
         this.items = {};
-        this.cartCounter = document.querySelector('.cart-counter'); // отримуємо лічильник кількості товарів
-        this.cartElement = document.querySelector('#cart-items');
-        this.loadCartFromCookies(); // завантажуємо з куків раніше додані товари
+        // this.cartCounter = document.querySelector('.cart-counter');// отримуємо лічильник кількості товарів у кошику
+        this.cartElement = document.querySelector('#cart-items'); 
+        this.loadCartFromCookies(); // завантажуємо з кукі-файлів раніше додані в кошик товари
     }
 
     // Додавання товару до кошика
     addItem(item) {
+        
         if (this.items[item.title]) {
             this.items[item.title].quantity += 1; // Якщо товар вже є, збільшуємо його кількість на одиницю
         } else {
@@ -83,11 +93,12 @@ class ShoppingCart {
         this.saveCartToCookies();
     }
 
-    // Зміна кількості товару
+    // Зміна кількості товарів товарів
     updateQuantity(itemTitle, newQuantity) {
+        console.log(itemTitle)
         if (this.items[itemTitle]) {
             this.items[itemTitle].quantity = newQuantity;
-            if (this.items[itemTitle].quantity == 0) {
+            if (this.items[itemTitle].quantity <= 0) {
                 delete this.items[itemTitle];
             }
             this.updateCounter();
@@ -101,36 +112,23 @@ class ShoppingCart {
         for (let key in this.items) { // проходимося по всіх ключах об'єкта this.items
             count += this.items[key].quantity; // рахуємо кількість усіх товарів
         }
-        this.cartCounter.textContent = count; // оновлюємо лічильник на сторінці
+        // this.cartCounter.innerHTML = count; // оновлюємо лічильник на сторінці
     }
 
-    // Зберігання кошика в куках
+    // Зберігання кошика в кукі
     saveCartToCookies() {
         let cartJSON = JSON.stringify(this.items);
         document.cookie = `cart=${cartJSON}; max-age=${60 * 60 * 24 * 7}; path=/`;
     }
 
-    // Завантаження кошика з куків
+    // Завантаження кошика з кукі
     loadCartFromCookies() {
-        let cartCookie = this.getCookieValue('cart');
+        let cartCookie = getCookieValue('cart');
         if (cartCookie && cartCookie !== '') {
             this.items = JSON.parse(cartCookie);
             this.updateCounter();
         }
     }
-
-    // Отримання значення кукі за іменем
-    getCookieValue(name) {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            const [cookieName, cookieValue] = cookie.split('=');
-            if (cookieName.trim() === name) {
-                return decodeURIComponent(cookieValue);
-            }
-        }
-        return '';
-    }
-
     // Обчислення загальної вартості товарів у кошику
     calculateTotal() {
         let total = 0;
@@ -141,43 +139,21 @@ class ShoppingCart {
     }
 }
 
-// Створення об'єкта кошика
+// Створення об'єкта кошика 
 let cart = new ShoppingCart();
+
 
 // Функція для додавання товару до кошика при кліку на кнопку "Купити"
 function addToCart(event) {
     // Отримуємо дані про товар з data-атрибута кнопки
     const productData = event.target.getAttribute('data-product');
+    console.log(productData);
+    
     const product = JSON.parse(productData);
+    console.log(product);
+    
 
     // Додаємо товар до кошика
     cart.addItem(product);
     console.log(cart);
 }
-
-let themeBtn = document.querySelector("#themeToggle")
-
-function setTheme(theme) {
-    if (theme == 'light') {
-        document.body.classList.add("light-theme");
-        themeBtn.innerHTML = '<i class="bi bi-moon"></i>';
-    } else {
-        document.body.classList.remove("light-theme");
-        themeBtn.innerHTML = '<i class="bi bi-brightness-high"></i>';
-    }
-}
-
-let theme = getCookieValue('theme')
-setTheme(theme)
-
-themeBtn.addEventListener("click", () => {
-    document.body.classList.toggle('light-theme'); // Перемикаємо клас теми
-    if (theme == 'light') {
-        theme = 'dark'
-    } else {
-        theme = 'light'
-    }
-    setTheme(theme)
-    // Зберігаємо JSON рядок у кукі
-    document.cookie = `theme=${theme}; max-age=${60 * 60 * 24 * 7}; path=/`;
-}) 
